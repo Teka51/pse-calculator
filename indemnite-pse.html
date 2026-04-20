@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur d'indemnité PSE</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --warning: #ea580c;
+    --warning-bg: #ffedd5;
+    --danger: #dc2626;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05),
+                0 4px 16px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .field .hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .field input.error {
+    border-color: var(--danger);
+  }
+
+  button {
+    width: 100%;
+    padding: 13px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+    margin-top: 6px;
+  }
+
+  button:hover {
+    background: var(--primary-hover);
+  }
+
+  button:active {
+    transform: translateY(1px);
+  }
+
+  .results {
+    display: none;
+  }
+
+  .results.visible {
+    display: block;
+    animation: fadeIn 0.25s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .breakdown {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 4px;
+  }
+
+  .line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+    gap: 12px;
+  }
+
+  .line:last-of-type {
+    border-bottom: none;
+  }
+
+  .line .label {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  .line .value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .line.total {
+    border-top: 2px solid var(--border);
+    margin-top: 8px;
+    padding-top: 14px;
+    border-bottom: none;
+  }
+
+  .line.total .label,
+  .line.total .value {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--text);
+  }
+
+  .alert {
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin: 14px 0;
+    font-size: 0.92rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .alert.warning {
+    background: var(--warning-bg);
+    color: #9a3412;
+    border-left: 4px solid var(--warning);
+  }
+
+  .alert.info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid var(--primary);
+  }
+
+  .final-box {
+    margin-top: 20px;
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid;
+  }
+
+  .final-box.green {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .final-box.orange {
+    background: var(--warning-bg);
+    border-color: var(--warning);
+    color: var(--warning);
+  }
+
+  .final-box .final-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .final-box .final-amount {
+    font-size: 2.4rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+
+  .final-box .final-sub {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+
+  .final-box .breakdown-mini {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid currentColor;
+    opacity: 0.55;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .final-box .breakdown-mini .mini-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .final-box .net-block {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 2px dashed currentColor;
+  }
+
+  .final-box .net-block .final-label {
+    margin-bottom: 4px;
+  }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .segmented input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .segmented label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 10px;
+    margin: 0;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  .segmented label .sub {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .segmented input[type="radio"]:checked + label {
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(37, 99, 235, 0.25);
+  }
+
+  .segmented input[type="radio"]:checked + label .sub {
+    color: var(--primary);
+    opacity: 0.8;
+  }
+
+  .segmented label:hover {
+    color: var(--text);
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    padding: 14px 10px 4px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 520px) {
+    body { padding: 14px; }
+    .card { padding: 20px; }
+    header h1 { font-size: 1.45rem; }
+    .final-box .final-amount { font-size: 1.9rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Calculateur d'indemnité PSE</h1>
+      <p>Estimation de l'indemnité de licenciement dans le cadre d'un Plan de Sauvegarde de l'Emploi</p>
+    </header>
+
+    <div class="card">
+      <h2>Vos données</h2>
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="salaire">Salaire mensuel brut (€)</label>
+          <input type="number" id="salaire" step="0.01" min="0"
+                 placeholder="Ex : 3 500" inputmode="decimal" required>
+          <div class="hint">Montant en euros, deux décimales acceptées</div>
+        </div>
+
+        <div class="field">
+          <label for="anciennete">Ancienneté (années)</label>
+          <input type="number" id="anciennete" step="0.01" min="0"
+                 placeholder="Ex : 7,75" inputmode="decimal" required>
+          <div class="hint" id="anciennete-hint">
+            Les mois s'afficheront automatiquement en tapant
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Statut (coefficient ICL par année)</label>
+          <div class="segmented" role="radiogroup" aria-label="Statut">
+            <input type="radio" name="coefficient" id="coef-noncadre" value="0.25">
+            <label for="coef-noncadre">
+              Non cadre
+              <span class="sub">0,25 mois / an</span>
+            </label>
+            <input type="radio" name="coefficient" id="coef-cadre" value="0.33" checked>
+            <label for="coef-cadre">
+              Cadre
+              <span class="sub">0,33 mois / an</span>
+            </label>
+          </div>
+          <div class="hint">Non cadre : 1/4 de mois — Cadre : 1/3 de mois par année d'ancienneté</div>
+        </div>
+
+        <button type="submit">Calculer mon indemnité</button>
+      </form>
+    </div>
+
+    <div id="results" class="card results" aria-live="polite">
+      <h2>Résultat du calcul</h2>
+      <div id="breakdown" class="breakdown"></div>
+      <div id="alerts"></div>
+      <div id="final"></div>
+    </div>
+
+    <footer>
+      CSG appliquée à 9 % sur l'ensemble de l'indemnité. D'autres prélèvements
+      (CRDS, fiscalité) peuvent s'appliquer au-delà de certains seuils.
+    </footer>
+  </div>
+
+<script>
+  const formatEuro = (value) => {
+    const rounded = Math.round(value * 100) / 100;
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: Number.isInteger(rounded) ? 0 : 2,
+      maximumFractionDigits: 2
+    }).format(rounded);
+    return formatted + ' €';
+  };
+
+  const formatMonths = (value) => {
+    const rounded = Math.round(value * 100) / 100;
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: Number.isInteger(rounded) ? 0 : 2,
+      maximumFractionDigits: 2
+    }).format(rounded);
+    return formatted;
+  };
+
+  const getPlafondMultiplier = (anciennete) => {
+    if (anciennete < 10) return 15;
+    if (anciennete < 13) return 21;
+    if (anciennete < 20) return 24;
+    return 26;
+  };
+
+  const PLANCHER = 35000;
+  const CSG_RATE = 0.09;
+
+  const calculate = (salaire, anciennete, coefficient) => {
+    const icl = anciennete * (salaire * coefficient);
+    const complement1 = Math.max(4 * icl, 3 * salaire);
+    const complement2 = Math.max(10000, 6 * salaire);
+    const totalCalcule = icl + complement1 + complement2;
+
+    const plafondMultiplier = getPlafondMultiplier(anciennete);
+    const plafond = plafondMultiplier * salaire;
+
+    let indemnite = totalCalcule;
+    let cas = 'normal';
+
+    if (totalCalcule < PLANCHER) {
+      indemnite = PLANCHER;
+      cas = 'plancher';
+    } else if (totalCalcule > plafond) {
+      indemnite = plafond;
+      cas = 'plafond';
+    }
+
+    const csg = indemnite * CSG_RATE;
+    const net = indemnite - csg;
+
+    return {
+      icl,
+      complement1,
+      complement2,
+      totalCalcule,
+      plafond,
+      plafondMultiplier,
+      indemnite,
+      csg,
+      net,
+      cas
+    };
+  };
+
+  const render = (data) => {
+    const breakdown = document.getElementById('breakdown');
+    const alerts = document.getElementById('alerts');
+    const final = document.getElementById('final');
+
+    breakdown.innerHTML = `
+      <div class="line">
+        <span class="label">ICL (ancienneté × salaire × coefficient)</span>
+        <span class="value">${formatEuro(data.icl)}</span>
+      </div>
+      <div class="line">
+        <span class="label">Complément 1 — MAX(4 × ICL ; 3 × salaire)</span>
+        <span class="value">${formatEuro(data.complement1)}</span>
+      </div>
+      <div class="line">
+        <span class="label">Complément 2 — MAX(10 000 € ; 6 × salaire)</span>
+        <span class="value">${formatEuro(data.complement2)}</span>
+      </div>
+      <div class="line total">
+        <span class="label">Total calculé (brut théorique)</span>
+        <span class="value">${formatEuro(data.totalCalcule)}</span>
+      </div>
+      <div class="line">
+        <span class="label">Plancher applicable</span>
+        <span class="value">${formatEuro(PLANCHER)}</span>
+      </div>
+      <div class="line">
+        <span class="label">Plafond applicable (${data.plafondMultiplier} mois de salaire)</span>
+        <span class="value">${formatEuro(data.plafond)}</span>
+      </div>
+    `;
+
+    alerts.innerHTML = '';
+    final.innerHTML = '';
+
+    const buildFinalBox = (color, subText) => `
+      <div class="final-box ${color}">
+        <div class="final-label">Indemnité brute à percevoir</div>
+        <div class="final-amount">${formatEuro(data.indemnite)}</div>
+        <div class="final-sub">${subText}</div>
+
+        <div class="breakdown-mini">
+          <div class="mini-line">
+            <span>Brut</span>
+            <span>${formatEuro(data.indemnite)}</span>
+          </div>
+          <div class="mini-line">
+            <span>CSG (9 %)</span>
+            <span>− ${formatEuro(data.csg)}</span>
+          </div>
+        </div>
+
+        <div class="net-block">
+          <div class="final-label">Net versé</div>
+          <div class="final-amount">${formatEuro(data.net)}</div>
+          <div class="final-sub">Après CSG de 9 %</div>
+        </div>
+      </div>
+    `;
+
+    if (data.cas === 'plancher') {
+      alerts.innerHTML = `
+        <div class="alert warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Montant calculé : ${formatEuro(data.totalCalcule)}</strong><br>
+            En dessous du plancher de ${formatEuro(PLANCHER)}.
+          </div>
+        </div>
+      `;
+      final.innerHTML = buildFinalBox('green', 'Application du plancher PSE');
+    } else if (data.cas === 'plafond') {
+      const manque = data.totalCalcule - data.indemnite;
+      alerts.innerHTML = `
+        <div class="alert warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Montant calculé : ${formatEuro(data.totalCalcule)}</strong><br>
+            Au-dessus du plafond de ${formatEuro(data.plafond)}
+            (${formatMonths(data.plafondMultiplier)} mois de salaire).<br>
+            <strong>Manque à gagner : ${formatEuro(manque)}</strong>
+          </div>
+        </div>
+      `;
+      final.innerHTML = buildFinalBox('orange', 'Montant écrêté au plafond légal');
+    } else {
+      final.innerHTML = buildFinalBox('green', 'Montant compris entre plancher et plafond');
+    }
+
+    const results = document.getElementById('results');
+    results.classList.add('visible');
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const validate = (salaire, anciennete, coefficient) => {
+    const errors = [];
+    if (!Number.isFinite(salaire) || salaire <= 0) {
+      errors.push({ id: 'salaire', msg: 'Salaire invalide' });
+    }
+    if (!Number.isFinite(anciennete) || anciennete < 0) {
+      errors.push({ id: 'anciennete', msg: 'Ancienneté invalide' });
+    }
+    if (!Number.isFinite(coefficient) || coefficient <= 0) {
+      errors.push({ id: 'coefficient', msg: 'Coefficient invalide' });
+    }
+    return errors;
+  };
+
+  const ancienneteHintEl = document.getElementById('anciennete-hint');
+  const ancienneteInputEl = document.getElementById('anciennete');
+  const defaultHint = "Les mois s'afficheront automatiquement en tapant";
+
+  ancienneteInputEl.addEventListener('input', () => {
+    const v = parseFloat(ancienneteInputEl.value.replace(',', '.'));
+    if (!Number.isFinite(v) || v < 0) {
+      ancienneteHintEl.textContent = defaultHint;
+      return;
+    }
+    const years = Math.floor(v);
+    const months = Math.round((v - years) * 12);
+    if (months === 0) {
+      ancienneteHintEl.textContent = `= ${years} an${years > 1 ? 's' : ''}`;
+    } else if (months === 12) {
+      ancienneteHintEl.textContent = `= ${years + 1} ans`;
+    } else {
+      ancienneteHintEl.textContent =
+        `= ${years} an${years > 1 ? 's' : ''} et ${months} mois`;
+    }
+  });
+
+  document.getElementById('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const salaireEl = document.getElementById('salaire');
+    const ancienneteEl = document.getElementById('anciennete');
+    const coefficientEl = document.querySelector('input[name="coefficient"]:checked');
+
+    [salaireEl, ancienneteEl].forEach(el => el.classList.remove('error'));
+
+    const salaire = parseFloat(salaireEl.value.replace(',', '.'));
+    const anciennete = parseFloat(ancienneteEl.value.replace(',', '.'));
+    const coefficient = coefficientEl ? parseFloat(coefficientEl.value) : NaN;
+
+    const errors = validate(salaire, anciennete, coefficient);
+    if (errors.length > 0) {
+      errors.forEach(err => document.getElementById(err.id).classList.add('error'));
+      document.getElementById('results').classList.remove('visible');
+      return;
+    }
+
+    const data = calculate(salaire, anciennete, coefficient);
+    render(data);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Claude Code
+.claude/
+
+# Texte extrait du PDF (généré localement)
+accord-pse.txt
+
+# PDFs sources
+*.pdf
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*~
