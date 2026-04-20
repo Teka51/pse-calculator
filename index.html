@@ -490,6 +490,13 @@
           <div class="hint">Base 37h : environ 11-12 j / an</div>
         </div>
 
+        <div class="field">
+          <label for="joursCET">Jours de CET (Compte Épargne Temps)</label>
+          <input type="number" id="joursCET" step="0.5" min="0"
+                 value="0" inputmode="decimal">
+          <div class="hint">Jours capitalisés, valorisés au tarif d'une journée</div>
+        </div>
+
         <button type="submit">Calculer mon indemnité</button>
       </form>
     </div>
@@ -543,7 +550,7 @@
   const COTISATIONS_CADRE = 0.24;
   const COTISATIONS_NONCADRE = 0.22;
 
-  const calculate = (salaire, anciennete, coefficient, joursCP, joursRTT) => {
+  const calculate = (salaire, anciennete, coefficient, joursCP, joursRTT, joursCET) => {
     // --- Indemnité PSE ---
     const icl = anciennete * (salaire * coefficient);
     const complement1 = Math.max(4 * icl, 3 * salaire);
@@ -567,11 +574,12 @@
     const csg = indemnite * CSG_RATE;
     const net = indemnite - csg;
 
-    // --- Solde de tout compte (CP + RTT) ---
+    // --- Solde de tout compte (CP + RTT + CET) ---
     const valeurJour = salaire / JOURS_OUVRES_MOIS;
     const iccp = joursCP * valeurJour;
     const irtt = joursRTT * valeurJour;
-    const stcBrut = iccp + irtt;
+    const icet = joursCET * valeurJour;
+    const stcBrut = iccp + irtt + icet;
     const tauxCotisations = coefficient >= 0.33 ? COTISATIONS_CADRE : COTISATIONS_NONCADRE;
     const stcCotisations = stcBrut * tauxCotisations;
     const stcNet = stcBrut - stcCotisations;
@@ -595,8 +603,10 @@
       valeurJour,
       joursCP,
       joursRTT,
+      joursCET,
       iccp,
       irtt,
+      icet,
       stcBrut,
       tauxCotisations,
       stcCotisations,
@@ -716,6 +726,11 @@
             <span class="label">Indemnité RTT (${formatMonths(data.joursRTT)} j)</span>
             <span class="value">${formatEuro(data.irtt)}</span>
           </div>` : ''}
+          ${data.joursCET > 0 ? `
+          <div class="line">
+            <span class="label">Indemnité CET (${formatMonths(data.joursCET)} j)</span>
+            <span class="value">${formatEuro(data.icet)}</span>
+          </div>` : ''}
           <div class="line total">
             <span class="label">STC brut</span>
             <span class="value">${formatEuro(data.stcBrut)}</span>
@@ -789,14 +804,16 @@
     const coefficientEl = document.querySelector('input[name="coefficient"]:checked');
     const joursCPEl = document.getElementById('joursCP');
     const joursRTTEl = document.getElementById('joursRTT');
+    const joursCETEl = document.getElementById('joursCET');
 
-    [salaireEl, ancienneteEl, joursCPEl, joursRTTEl].forEach(el => el.classList.remove('error'));
+    [salaireEl, ancienneteEl, joursCPEl, joursRTTEl, joursCETEl].forEach(el => el.classList.remove('error'));
 
     const salaire = parseFloat(salaireEl.value.replace(',', '.'));
     const anciennete = parseFloat(ancienneteEl.value.replace(',', '.'));
     const coefficient = coefficientEl ? parseFloat(coefficientEl.value) : NaN;
     const joursCP = parseFloat((joursCPEl.value || '0').replace(',', '.')) || 0;
     const joursRTT = parseFloat((joursRTTEl.value || '0').replace(',', '.')) || 0;
+    const joursCET = parseFloat((joursCETEl.value || '0').replace(',', '.')) || 0;
 
     const errors = validate(salaire, anciennete, coefficient);
     if (errors.length > 0) {
@@ -805,7 +822,7 @@
       return;
     }
 
-    const data = calculate(salaire, anciennete, coefficient, joursCP, joursRTT);
+    const data = calculate(salaire, anciennete, coefficient, joursCP, joursRTT, joursCET);
     render(data);
   });
 </script>
