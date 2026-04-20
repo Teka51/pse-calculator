@@ -149,6 +149,210 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* Sticky summary bar */
+  .sticky-summary {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin: -28px -28px 18px -28px;
+    border-radius: 14px 14px 0 0;
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+  }
+
+  .sticky-summary .item {
+    text-align: center;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .sticky-summary .item-label {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .sticky-summary .item-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+  .sticky-summary .item.best .item-value {
+    color: #4ade80;
+  }
+
+  .sticky-summary .item.diff {
+    flex: 0.7;
+  }
+
+  .sticky-summary .item.diff .item-value {
+    color: #fbbf24;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    align-items: center;
+  }
+
+  .tab {
+    width: auto;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    margin: 0;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .tab:hover {
+    background: transparent;
+    color: var(--text);
+  }
+
+  .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  .btn-print {
+    width: auto;
+    margin-left: auto;
+    margin-top: 0;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    background: #f1f5f9;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-print:hover {
+    background: #e2e8f0;
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  /* Tooltip */
+  .tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 4px;
+    cursor: help;
+    vertical-align: middle;
+    position: relative;
+  }
+
+  .tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    white-space: normal;
+    width: 240px;
+    text-align: left;
+    line-height: 1.4;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 20;
+  }
+
+  .tip:hover::after,
+  .tip:focus::after {
+    opacity: 1;
+  }
+
+  /* Print */
+  @media print {
+    @page { margin: 14mm; size: A4; }
+    html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; }
+    body { font-size: 11pt; }
+    .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    header, footer, .form-card, .tabs, .btn-print, .sticky-summary {
+      display: none !important;
+    }
+    .card { box-shadow: none !important; border: 1px solid #ccc !important; padding: 10px !important; margin: 0 0 8px 0 !important; page-break-inside: auto; }
+    .results { display: block !important; animation: none !important; }
+    .tab-panel { display: block !important; animation: none !important; margin-bottom: 14px; }
+    .tab-panel + .tab-panel { page-break-before: always; }
+    .retour-box, .compare-box, .stc-box, .final-box, .total-box { page-break-inside: avoid; }
+
+    /* Éviter tout débordement horizontal */
+    .compare-box, .retour-box { overflow: visible !important; }
+    .compare-table { width: 100% !important; table-layout: fixed !important; }
+    .compare-table th, .compare-table td { white-space: normal !important; word-wrap: break-word; padding: 6px 4px !important; font-size: 9.5pt; }
+
+    /* Boxes sombres → fond clair pour l'impression */
+    .compare-box, .retour-box, .total-box {
+      background: #fff !important;
+      color: #000 !important;
+      border: 1px solid #999 !important;
+    }
+    .compare-box .compare-title, .retour-box .retour-title, .total-box .total-label { color: #000 !important; }
+    .compare-table, .compare-table th, .compare-table td,
+    .retour-box .line .label, .retour-box .line .value, .retour-box .hint,
+    .total-box .total-amount, .total-box .total-sub { color: #000 !important; }
+    .compare-table tr.total td, .compare-table .best,
+    .retour-box .line.total .label, .retour-box .line.total .value { color: #000 !important; font-weight: 700 !important; }
+
+    /* final-box : simplifier couleurs */
+    .final-box { background: #fff !important; color: #000 !important; border-color: #666 !important; padding: 14px !important; }
+    .final-box.green, .final-box.orange { color: #000 !important; }
+    .final-box .final-amount { font-size: 1.6rem; }
+
+    .print-title { display: block !important; font-size: 14pt; font-weight: 700; margin-bottom: 4px; color: #000 !important; }
+    .print-subtitle { display: block !important; color: #555 !important; font-size: 9pt; margin-bottom: 10px; }
+
+    h2 { color: #000 !important; font-size: 12pt !important; margin-bottom: 8px !important; }
+
+    /* Éviter les animations qui peuvent geler le rendu */
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  .print-title, .print-subtitle { display: none; }
+
   .breakdown {
     border-top: 1px solid var(--border);
     padding-top: 16px;
@@ -410,6 +614,101 @@
     margin-top: 6px;
   }
 
+  .compare-box {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #0f172a;
+    border: 1px solid #1f2937;
+    overflow-x: auto;
+  }
+
+  .compare-box .compare-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #f3f4f6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    color: #e5e7eb;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 9px 10px;
+    text-align: right;
+    border-bottom: 1px solid #1f2937;
+  }
+
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .compare-table thead th {
+    font-weight: 700;
+    color: #f3f4f6;
+    border-bottom: 2px solid #334155;
+  }
+
+  .compare-table tr.total td {
+    font-weight: 700;
+    color: #4ade80;
+    border-top: 1px solid #334155;
+  }
+
+  .compare-table .best {
+    color: #4ade80;
+    font-weight: 700;
+  }
+
+  .retour-box {
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #0f172a;
+    border: 1px solid #1f2937;
+    overflow-x: auto;
+    color: #e5e7eb;
+  }
+
+  .retour-box .line .label {
+    color: #94a3b8;
+  }
+
+  .retour-box .line.total .label,
+  .retour-box .line.total .value {
+    color: #4ade80;
+  }
+
+  .retour-box .hint {
+    color: #94a3b8;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 9px 6px;
+    white-space: nowrap;
+  }
+
+  .retour-box .retour-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #f3f4f6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   footer {
     text-align: center;
     font-size: 0.82rem;
@@ -433,40 +732,56 @@
       <p>Estimation de l'indemnité de licenciement dans le cadre d'un Plan de Sauvegarde de l'Emploi</p>
     </header>
 
-    <div class="card">
+    <div class="card form-card">
       <h2>Vos données</h2>
       <form id="form" novalidate>
         <div class="field">
-          <label for="salaire">Salaire mensuel brut (€)</label>
+          <label for="salaire">Salaire mensuel brut (€)<span class="tip" tabindex="0" data-tip="Salaire brut mensuel avant prélèvements. Pour la base V.2, inclure une moyenne du variable sur 12 mois."></span></label>
           <input type="number" id="salaire" step="0.01" min="0"
                  placeholder="Ex : 3 500" inputmode="decimal" required>
           <div class="hint">Montant en euros, deux décimales acceptées</div>
         </div>
 
         <div class="field">
-          <label for="anciennete">Ancienneté (années)</label>
-          <input type="number" id="anciennete" step="0.01" min="0"
-                 placeholder="Ex : 7,75" inputmode="decimal" required>
-          <div class="hint" id="anciennete-hint">
-            Les mois s'afficheront automatiquement en tapant
+          <label for="dateEntree">Date d'entrée dans l'entreprise</label>
+          <input type="date" id="dateEntree" required>
+          <div class="hint">Date d'embauche figurant sur ton contrat / bulletin</div>
+        </div>
+
+        <div class="field">
+          <label for="dateHomologation">Date d'homologation du PSE (réf. PDV)<span class="tip" tabindex="0" data-tip="Date à laquelle le PSE devient officiel. L'ancienneté PDV est calculée jusqu'à cette date."></span></label>
+          <input type="date" id="dateHomologation" value="2026-04-20" required>
+          <div class="hint" id="anciennete-hint-pdv">
+            Ancienneté PDV : à la date d'homologation
           </div>
         </div>
 
         <div class="field">
-          <label>Statut (coefficient ICL par année)</label>
+          <label for="dateLicenciement">Date estimée du licenciement<span class="tip" tabindex="0" data-tip="Date prévisionnelle du licenciement économique (après les périodes de volontariat). L'ancienneté licenciement est calculée jusqu'à cette date."></span></label>
+          <input type="date" id="dateLicenciement" value="2027-01-15" required>
+          <div class="hint" id="anciennete-hint-licenciement">
+            Licenciement économique au plus tôt en janvier 2027 (après périodes de volontariat)
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Statut (coefficient ICL par année)<span class="tip" tabindex="0" data-tip="Cadre = coefficient ≥ 0,33. ETAM = 0,25 jusqu'à 10 ans puis 0,33 sur les années suivantes. Cadre = 0,25 si &lt; 2 ans d'ancienneté, sinon 0,33 sur tout."></span></label>
           <div class="segmented" role="radiogroup" aria-label="Statut">
             <input type="radio" name="coefficient" id="coef-noncadre" value="0.25">
             <label for="coef-noncadre">
-              Non cadre
-              <span class="sub">0,25 mois / an</span>
+              Non cadre (ETAM)
+              <span class="sub">0,25 jusqu'à 10 ans puis 0,33</span>
             </label>
             <input type="radio" name="coefficient" id="coef-cadre" value="0.33" checked>
             <label for="coef-cadre">
               Cadre
-              <span class="sub">0,33 mois / an</span>
+              <span class="sub">0,25 &lt; 2 ans / 0,33 ≥ 2 ans</span>
             </label>
           </div>
-          <div class="hint">Non cadre : 1/4 de mois — Cadre : 1/3 de mois par année d'ancienneté</div>
+          <div class="hint">
+            ETAM : tranches progressives (10 premières à 1/4, suivantes à 1/3).
+            Cadre : seuil simple (tout à 1/4 si &lt; 2 ans, tout à 1/3 sinon).
+          </div>
         </div>
 
         <div class="subsection">
@@ -491,10 +806,44 @@
         </div>
 
         <div class="field">
-          <label for="joursCET">Jours de CET (Compte Épargne Temps)</label>
+          <label for="joursCET">Jours de CET (Compte Épargne Temps)<span class="tip" tabindex="0" data-tip="Jours capitalisés dans ton CET. Valorisés au tarif d'une journée ouvrée (salaire / 21,67)."></span></label>
           <input type="number" id="joursCET" step="0.5" min="0"
                  value="0" inputmode="decimal">
           <div class="hint">Jours capitalisés, valorisés au tarif d'une journée</div>
+        </div>
+
+        <div class="field">
+          <label for="joursRecup">Jours de récupération<span class="tip" tabindex="0" data-tip="Jours de récupération (repos compensateur, heures supplémentaires non payées, jours fériés travaillés, etc.) non pris à la sortie. Valorisés comme une journée ouvrée."></span></label>
+          <input type="number" id="joursRecup" step="0.5" min="0"
+                 value="0" inputmode="decimal">
+          <div class="hint">Récupération, repos compensateur, heures supp non payées…</div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Retour à l'emploi (licenciement uniquement)</div>
+          <div class="subsection-subtitle">
+            Deux dispositifs cumulables : indemnité de différentiel de salaire (IV.2) et prime de retour rapide (V.2)
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="nouveauSalaire">Salaire brut du nouvel emploi (€, optionnel)</label>
+          <input type="number" id="nouveauSalaire" step="0.01" min="0"
+                 placeholder="Laisser vide si inconnu" inputmode="decimal">
+          <div class="hint">
+            IV.2 — Indemnité différentielle sur 4 trimestres (100/70/40/25 %, plafonds 450/300/200/120 € mensuels).
+            CDI ou CDD &gt; 6 mois, sous 4 mois, temps plein ou ≥ 70 %.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="delaiReprise">Délai de reprise d'emploi (mois, optionnel)</label>
+          <input type="number" id="delaiReprise" step="1" min="0" max="24"
+                 placeholder="Ex : 3" inputmode="numeric">
+          <div class="hint">
+            V.2 — Prime dégressive : ≤ 3 mois = 4 mois (max 25 000 €), 3-6 mois = 2 mois (max 12 000 €),
+            6-9 mois = 1 mois (max 5 000 €). CDI ou CDD &gt; 6 mois, hors reclassement interne, temps plein ou ≥ 80 %.
+          </div>
         </div>
 
         <button type="submit">Calculer mon indemnité</button>
@@ -502,10 +851,19 @@
     </div>
 
     <div id="results" class="card results" aria-live="polite">
+      <div id="stickySummary" class="sticky-summary" style="display:none"></div>
+      <span class="print-title">Calculateur d'indemnité PSE — Rapport</span>
+      <span class="print-subtitle" id="printSubtitle"></span>
       <h2>Résultat du calcul</h2>
-      <div id="breakdown" class="breakdown"></div>
-      <div id="alerts"></div>
-      <div id="final"></div>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="compare" role="tab">Comparatif</button>
+        <button type="button" class="tab" data-tab="pdv" role="tab">Détail PDV</button>
+        <button type="button" class="tab" data-tab="licenciement" role="tab">Détail Licenciement</button>
+        <button type="button" class="btn-print" id="btnPrint" title="Imprimer ou exporter en PDF">Imprimer / PDF</button>
+      </div>
+      <div class="tab-panel active" id="panel-compare" role="tabpanel"></div>
+      <div class="tab-panel" id="panel-pdv" role="tabpanel"></div>
+      <div class="tab-panel" id="panel-licenciement" role="tabpanel"></div>
     </div>
 
     <footer>
@@ -542,31 +900,119 @@
     return 26;
   };
 
-  const PLANCHER = 35000;
+  const PLANCHER_PDV = 35000;
+  const PLANCHER_LICENCIEMENT = 30000;
+  const SUPRA_LEGALE_MOIS = 10;
   const CSG_RATE = 0.09;
+  const SEUIL_CADRE_ANS = 2;
+  const SEUIL_ETAM_ANS = 10;
+
+  // ICL selon convention Syntec (Bureaux d'études techniques)
+  // - Cadre : seuil simple (< 2 ans = 1/4, ≥ 2 ans = 1/3 sur tout)
+  // - ETAM  : tranches progressives (10 premières à 1/4, au-delà à 1/3)
+  const computeICL = (anciennete, salaire, coefficient) => {
+    const isCadre = coefficient >= 0.33;
+    if (isCadre) {
+      const coef = anciennete < SEUIL_CADRE_ANS ? 0.25 : 0.33;
+      return { montant: anciennete * salaire * coef, detail: `${formatMonths(anciennete)} ans × ${coef.toString().replace('.', ',')} × salaire` };
+    }
+    // ETAM — tranches progressives
+    if (anciennete <= SEUIL_ETAM_ANS) {
+      return {
+        montant: anciennete * salaire * 0.25,
+        detail: `${formatMonths(anciennete)} ans × 0,25 × salaire`
+      };
+    }
+    const base = SEUIL_ETAM_ANS * 0.25;
+    const extra = (anciennete - SEUIL_ETAM_ANS) * 0.33;
+    return {
+      montant: (base + extra) * salaire,
+      detail: `(10 × 0,25 + ${formatMonths(anciennete - SEUIL_ETAM_ANS)} × 0,33) × salaire`
+    };
+  };
   const JOURS_OUVRES_MOIS = 21.67;
   // Charges salariales moyennes (Syntec) - calibrées sur bulletins réels
   // Cadre 2.1 Syntec : taux effectif mesuré ≈ 23,9 % (Sécu + retraite + APEC + CSG/CRDS)
   const COTISATIONS_CADRE = 0.24;
   const COTISATIONS_NONCADRE = 0.22;
 
-  const calculate = (salaire, anciennete, coefficient, joursCP, joursRTT, joursCET) => {
-    // --- Indemnité PSE ---
-    const icl = anciennete * (salaire * coefficient);
-    const complement1 = Math.max(4 * icl, 3 * salaire);
-    const complement2 = Math.max(10000, 6 * salaire);
-    const totalCalcule = icl + complement1 + complement2;
+  // IV.2 — Indemnité d'accompagnement en cas de différentiel de salaire (Accord PSE §4.2.2)
+  // [pourcentage du différentiel, plafond mensuel €]
+  const BAREME_DIFFERENTIEL = [
+    { t: 1, pct: 1.00, plafond: 450 },
+    { t: 2, pct: 0.70, plafond: 300 },
+    { t: 3, pct: 0.40, plafond: 200 },
+    { t: 4, pct: 0.25, plafond: 120 },
+  ];
 
-    const plafondMultiplier = getPlafondMultiplier(anciennete);
-    const plafond = plafondMultiplier * salaire;
+  const computeDifferentielSalaire = (salaireAncien, salaireNouveau) => {
+    if (!Number.isFinite(salaireAncien) || !Number.isFinite(salaireNouveau)) return null;
+    const differentiel = salaireAncien - salaireNouveau;
+    if (differentiel <= 0) return { differentiel, trimestres: [], total: 0, noGain: true };
+    const trimestres = BAREME_DIFFERENTIEL.map(b => {
+      const mensuel = Math.min(differentiel * b.pct, b.plafond);
+      const trimestriel = mensuel * 3;
+      return { ...b, mensuel, trimestriel };
+    });
+    const total = trimestres.reduce((s, t) => s + t.trimestriel, 0);
+    return { differentiel, trimestres, total, noGain: false };
+  };
 
-    let indemnite = totalCalcule;
+  // V.2 — Prime de retour rapide à l'emploi (Accord PSE §5.2.2)
+  // Barème selon le délai de reprise, base = salaire mensuel moyen (base + variable) sur 12 mois
+  const computePrimeRetourRapide = (salaire, delaiMois) => {
+    if (!Number.isFinite(salaire) || !Number.isFinite(delaiMois) || delaiMois < 0) return null;
+    let tranche, moisSalaire, plafond;
+    if (delaiMois <= 3) {
+      tranche = '≤ 3 mois'; moisSalaire = 4; plafond = 25000;
+    } else if (delaiMois <= 6) {
+      tranche = '> 3 à 6 mois'; moisSalaire = 2; plafond = 12000;
+    } else if (delaiMois <= 9) {
+      tranche = '> 6 à 9 mois'; moisSalaire = 1; plafond = 5000;
+    } else {
+      return { delaiMois, tranche: '> 9 mois', moisSalaire: 0, plafond: 0, calcule: 0, montant: 0, aucune: true };
+    }
+    const calcule = moisSalaire * salaire;
+    const montant = Math.min(calcule, plafond);
+    return { delaiMois, tranche, moisSalaire, plafond, calcule, montant, aucune: false };
+  };
+
+  const calculate = (mode, salaire, anciennete, coefficient, joursCP, joursRTT, joursCET, joursRecup) => {
+    // --- Indemnité ---
+    const iclResult = computeICL(anciennete, salaire, coefficient);
+    const icl = iclResult.montant;
+    const iclDetail = iclResult.detail;
+
+    let complement1 = 0;
+    let complement2 = 0;
+    let supraLegale = 0;
+    let totalCalcule = 0;
+    let plancher = 0;
+    let plafond = 0;
+    let plafondMultiplier = 0;
     let cas = 'normal';
 
-    if (totalCalcule < PLANCHER) {
-      indemnite = PLANCHER;
+    if (mode === 'licenciement') {
+      // Licenciement économique : ICL + supra-légale 10 mois, plancher 30 000, pas de plafond
+      supraLegale = SUPRA_LEGALE_MOIS * salaire;
+      totalCalcule = icl + supraLegale;
+      plancher = PLANCHER_LICENCIEMENT;
+    } else {
+      // PDV : ICL + Compl1 + Compl2, plancher 35 000, plafond selon ancienneté
+      complement1 = Math.max(4 * icl, 3 * salaire);
+      complement2 = Math.max(10000, 6 * salaire);
+      totalCalcule = icl + complement1 + complement2;
+      plancher = PLANCHER_PDV;
+      plafondMultiplier = getPlafondMultiplier(anciennete);
+      plafond = plafondMultiplier * salaire;
+    }
+
+    let indemnite = totalCalcule;
+
+    if (totalCalcule < plancher) {
+      indemnite = plancher;
       cas = 'plancher';
-    } else if (totalCalcule > plafond) {
+    } else if (mode === 'pdv' && totalCalcule > plafond) {
       indemnite = plafond;
       cas = 'plafond';
     }
@@ -574,12 +1020,13 @@
     const csg = indemnite * CSG_RATE;
     const net = indemnite - csg;
 
-    // --- Solde de tout compte (CP + RTT + CET) ---
+    // --- Solde de tout compte (CP + RTT + CET + Récup) ---
     const valeurJour = salaire / JOURS_OUVRES_MOIS;
     const iccp = joursCP * valeurJour;
     const irtt = joursRTT * valeurJour;
     const icet = joursCET * valeurJour;
-    const stcBrut = iccp + irtt + icet;
+    const irecup = (joursRecup || 0) * valeurJour;
+    const stcBrut = iccp + irtt + icet + irecup;
     const tauxCotisations = coefficient >= 0.33 ? COTISATIONS_CADRE : COTISATIONS_NONCADRE;
     const stcCotisations = stcBrut * tauxCotisations;
     const stcNet = stcBrut - stcCotisations;
@@ -589,10 +1036,16 @@
     const totalNet = net + stcNet;
 
     return {
+      mode,
+      salaire,
+      anciennete,
       icl,
+      iclDetail,
       complement1,
       complement2,
+      supraLegale,
       totalCalcule,
+      plancher,
       plafond,
       plafondMultiplier,
       indemnite,
@@ -604,9 +1057,11 @@
       joursCP,
       joursRTT,
       joursCET,
+      joursRecup: joursRecup || 0,
       iccp,
       irtt,
       icet,
+      irecup,
       stcBrut,
       tauxCotisations,
       stcCotisations,
@@ -617,46 +1072,97 @@
     };
   };
 
-  const render = (data) => {
-    const breakdown = document.getElementById('breakdown');
-    const alerts = document.getElementById('alerts');
-    const final = document.getElementById('final');
+  const renderDetailPanel = (data, differentiel, primeRapide) => {
+    if (!data) return '<div class="hint">Données incomplètes — vérifie le formulaire.</div>';
+    const linesMode = data.mode === 'licenciement'
+      ? `
+        <div class="line">
+          <span class="label">Indemnité supra-légale (${SUPRA_LEGALE_MOIS} × salaire)</span>
+          <span class="value">${formatEuro(data.supraLegale)}</span>
+        </div>
+        <div class="line total">
+          <span class="label">Total calculé (brut théorique)</span>
+          <span class="value">${formatEuro(data.totalCalcule)}</span>
+        </div>
+        <div class="line">
+          <span class="label">Plancher applicable</span>
+          <span class="value">${formatEuro(data.plancher)}</span>
+        </div>`
+      : `
+        <div class="line">
+          <span class="label">Complément 1 — MAX(4 × ICL ; 3 × salaire)</span>
+          <span class="value">${formatEuro(data.complement1)}</span>
+        </div>
+        <div class="line">
+          <span class="label">Complément 2 — MAX(10 000 € ; 6 × salaire)</span>
+          <span class="value">${formatEuro(data.complement2)}</span>
+        </div>
+        <div class="line total">
+          <span class="label">Total calculé (brut théorique)</span>
+          <span class="value">${formatEuro(data.totalCalcule)}</span>
+        </div>
+        <div class="line">
+          <span class="label">Plancher applicable</span>
+          <span class="value">${formatEuro(data.plancher)}</span>
+        </div>
+        <div class="line">
+          <span class="label">Plafond applicable (${data.plafondMultiplier} mois de salaire)</span>
+          <span class="value">${formatEuro(data.plafond)}</span>
+        </div>`;
 
-    breakdown.innerHTML = `
-      <div class="line">
-        <span class="label">ICL (ancienneté × salaire × coefficient)</span>
-        <span class="value">${formatEuro(data.icl)}</span>
-      </div>
-      <div class="line">
-        <span class="label">Complément 1 — MAX(4 × ICL ; 3 × salaire)</span>
-        <span class="value">${formatEuro(data.complement1)}</span>
-      </div>
-      <div class="line">
-        <span class="label">Complément 2 — MAX(10 000 € ; 6 × salaire)</span>
-        <span class="value">${formatEuro(data.complement2)}</span>
-      </div>
-      <div class="line total">
-        <span class="label">Total calculé (brut théorique)</span>
-        <span class="value">${formatEuro(data.totalCalcule)}</span>
-      </div>
-      <div class="line">
-        <span class="label">Plancher applicable</span>
-        <span class="value">${formatEuro(PLANCHER)}</span>
-      </div>
-      <div class="line">
-        <span class="label">Plafond applicable (${data.plafondMultiplier} mois de salaire)</span>
-        <span class="value">${formatEuro(data.plafond)}</span>
+    const breakdown = `
+      <div class="breakdown">
+        <div class="line">
+          <span class="label">ICL : ${data.iclDetail}</span>
+          <span class="value">${formatEuro(data.icl)}</span>
+        </div>
+        ${linesMode}
       </div>
     `;
 
-    alerts.innerHTML = '';
-    final.innerHTML = '';
+    let alertHTML = '';
+    let finalColor = 'green';
+    let finalSub = '';
 
-    const buildFinalBox = (color, subText) => `
-      <div class="final-box ${color}">
+    if (data.cas === 'plancher') {
+      alertHTML = `
+        <div class="alert warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Montant calculé : ${formatEuro(data.totalCalcule)}</strong><br>
+            En dessous du plancher de ${formatEuro(data.plancher)}.
+          </div>
+        </div>
+      `;
+      finalSub = data.mode === 'licenciement'
+        ? 'Application du plancher licenciement économique'
+        : 'Application du plancher PDV';
+    } else if (data.cas === 'plafond') {
+      const manque = data.totalCalcule - data.indemnite;
+      alertHTML = `
+        <div class="alert warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Montant calculé : ${formatEuro(data.totalCalcule)}</strong><br>
+            Au-dessus du plafond de ${formatEuro(data.plafond)}
+            (${formatMonths(data.plafondMultiplier)} mois de salaire).<br>
+            <strong>Manque à gagner : ${formatEuro(manque)}</strong>
+          </div>
+        </div>
+      `;
+      finalColor = 'orange';
+      finalSub = 'Montant écrêté au plafond légal';
+    } else {
+      finalSub = data.mode === 'licenciement'
+        ? 'Montant au-dessus du plancher licenciement économique'
+        : 'Montant compris entre plancher et plafond';
+    }
+
+    const finalBox = `
+      <div class="final-box ${finalColor}">
         <div class="final-label">Indemnité brute à percevoir</div>
         <div class="final-amount">${formatEuro(data.indemnite)}</div>
-        <div class="final-sub">${subText}</div>
+        <div class="final-sub">${finalSub}</div>
 
         <div class="breakdown-mini">
           <div class="mini-line">
@@ -677,39 +1183,10 @@
       </div>
     `;
 
-    if (data.cas === 'plancher') {
-      alerts.innerHTML = `
-        <div class="alert warning">
-          <span>⚠️</span>
-          <div>
-            <strong>Montant calculé : ${formatEuro(data.totalCalcule)}</strong><br>
-            En dessous du plancher de ${formatEuro(PLANCHER)}.
-          </div>
-        </div>
-      `;
-      final.innerHTML = buildFinalBox('green', 'Application du plancher PSE');
-    } else if (data.cas === 'plafond') {
-      const manque = data.totalCalcule - data.indemnite;
-      alerts.innerHTML = `
-        <div class="alert warning">
-          <span>⚠️</span>
-          <div>
-            <strong>Montant calculé : ${formatEuro(data.totalCalcule)}</strong><br>
-            Au-dessus du plafond de ${formatEuro(data.plafond)}
-            (${formatMonths(data.plafondMultiplier)} mois de salaire).<br>
-            <strong>Manque à gagner : ${formatEuro(manque)}</strong>
-          </div>
-        </div>
-      `;
-      final.innerHTML = buildFinalBox('orange', 'Montant écrêté au plafond légal');
-    } else {
-      final.innerHTML = buildFinalBox('green', 'Montant compris entre plancher et plafond');
-    }
-
-    // Bloc Solde de tout compte (si CP ou RTT > 0)
+    let stcBox = '';
     if (data.stcBrut > 0) {
       const tauxPct = Math.round(data.tauxCotisations * 100);
-      final.innerHTML += `
+      stcBox = `
         <div class="stc-box">
           <div class="stc-title">Solde de tout compte</div>
           <div class="line">
@@ -730,6 +1207,11 @@
           <div class="line">
             <span class="label">Indemnité CET (${formatMonths(data.joursCET)} j)</span>
             <span class="value">${formatEuro(data.icet)}</span>
+          </div>` : ''}
+          ${data.joursRecup > 0 ? `
+          <div class="line">
+            <span class="label">Indemnité Récupération (${formatMonths(data.joursRecup)} j)</span>
+            <span class="value">${formatEuro(data.irecup)}</span>
           </div>` : ''}
           <div class="line total">
             <span class="label">STC brut</span>
@@ -755,6 +1237,267 @@
       `;
     }
 
+    let retourHTML = '';
+    if (data.mode === 'licenciement') {
+      const tauxCotPct = Math.round(data.tauxCotisations * 100);
+      const netApresCot = (brut) => brut * (1 - data.tauxCotisations);
+
+      if (differentiel) {
+        if (differentiel.noGain) {
+          retourHTML += `
+            <div class="retour-box">
+              <div class="retour-title">IV.2 — Indemnité différentielle de salaire</div>
+              <div class="line">
+                <span class="label">Différentiel de salaire</span>
+                <span class="value">${formatEuro(differentiel.differentiel)}</span>
+              </div>
+              <div class="hint" style="margin-top:6px">
+                Le nouveau salaire est supérieur ou égal à l'ancien : pas d'indemnité différentielle.
+              </div>
+            </div>
+          `;
+        } else if (differentiel.trimestres.length > 0) {
+          const diffNet = netApresCot(differentiel.total);
+          retourHTML += `
+            <div class="retour-box">
+              <div class="retour-title">IV.2 — Indemnité différentielle de salaire</div>
+              <div class="line">
+                <span class="label">Différentiel mensuel (ancien − nouveau)</span>
+                <span class="value">${formatEuro(differentiel.differentiel)}</span>
+              </div>
+              <table class="compare-table" style="margin-top:10px">
+                <thead>
+                  <tr>
+                    <th>Trimestre</th>
+                    <th>%</th>
+                    <th>Plafond /mois</th>
+                    <th>Mensuel</th>
+                    <th>Trimestre</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${differentiel.trimestres.map(t => `
+                    <tr>
+                      <td>T${t.t}</td>
+                      <td>${Math.round(t.pct * 100)} %</td>
+                      <td>${formatEuro(t.plafond)}</td>
+                      <td>${formatEuro(t.mensuel)}</td>
+                      <td>${formatEuro(t.trimestriel)}</td>
+                    </tr>
+                  `).join('')}
+                  <tr class="total">
+                    <td colspan="4">Total brut sur 12 mois</td>
+                    <td>${formatEuro(differentiel.total)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="line" style="margin-top:10px">
+                <span class="label">Cotisations salariales (~${tauxCotPct} %)</span>
+                <span class="value">− ${formatEuro(differentiel.total - diffNet)}</span>
+              </div>
+              <div class="line total">
+                <span class="label">Net avant IR</span>
+                <span class="value">${formatEuro(diffNet)}</span>
+              </div>
+              <div class="hint" style="margin-top:8px">
+                Complément de salaire → cotisations ~${tauxCotPct} % + impôt sur le revenu selon TMI.
+                CDI ou CDD &gt; 6 mois dans les 4 mois, temps plein ou ≥ 70 %, versement trimestriel sur justificatifs.
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      if (primeRapide) {
+        if (primeRapide.aucune) {
+          retourHTML += `
+            <div class="retour-box">
+              <div class="retour-title">V.2 — Prime de retour rapide à l'emploi</div>
+              <div class="line">
+                <span class="label">Délai de reprise saisi</span>
+                <span class="value">${primeRapide.delaiMois} mois</span>
+              </div>
+              <div class="hint" style="margin-top:6px">
+                Délai supérieur à 9 mois : aucune prime de retour rapide.
+              </div>
+            </div>
+          `;
+        } else {
+          const primeNet = netApresCot(primeRapide.montant);
+          retourHTML += `
+            <div class="retour-box">
+              <div class="retour-title">V.2 — Prime de retour rapide à l'emploi</div>
+              <div class="line">
+                <span class="label">Délai de reprise</span>
+                <span class="value">${primeRapide.delaiMois} mois (${primeRapide.tranche})</span>
+              </div>
+              <div class="line">
+                <span class="label">${primeRapide.moisSalaire} mois de salaire</span>
+                <span class="value">${formatEuro(primeRapide.calcule)}</span>
+              </div>
+              <div class="line">
+                <span class="label">Plafond applicable</span>
+                <span class="value">${formatEuro(primeRapide.plafond)}</span>
+              </div>
+              <div class="line total">
+                <span class="label">Prime brute</span>
+                <span class="value">${formatEuro(primeRapide.montant)}</span>
+              </div>
+              <div class="line">
+                <span class="label">Cotisations salariales (~${tauxCotPct} %)</span>
+                <span class="value">− ${formatEuro(primeRapide.montant - primeNet)}</span>
+              </div>
+              <div class="line total">
+                <span class="label">Net avant IR</span>
+                <span class="value">${formatEuro(primeNet)}</span>
+              </div>
+              <div class="hint" style="margin-top:8px">
+                Prime soumise à cotisations ~${tauxCotPct} % + impôt sur le revenu selon TMI.
+                CDI ou CDD &gt; 6 mois, hors reclassement interne, temps plein ou ≥ 80 %.
+                Versement : 50 % à l'embauche + 50 % après 6 mois de présence.
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    return breakdown + alertHTML + finalBox + stcBox + retourHTML;
+  };
+
+  const renderComparePanel = (dataPDV, dataLic, differentiel, primeRapide) => {
+    if (!dataPDV || !dataLic) {
+      return '<div class="hint">Données incomplètes pour le comparatif.</div>';
+    }
+    const tauxCotPct = Math.round(dataLic.tauxCotisations * 100);
+    const bestBrut = dataPDV.indemnite >= dataLic.indemnite ? 'pdv' : 'lic';
+    const diffBrut = (differentiel && !differentiel.noGain) ? differentiel.total : 0;
+    const primeBrut = (primeRapide && !primeRapide.aucune) ? primeRapide.montant : 0;
+    const diffNet = diffBrut * (1 - dataLic.tauxCotisations);
+    const primeNet = primeBrut * (1 - dataLic.tauxCotisations);
+    const totalPDV = dataPDV.net + dataPDV.stcNet;
+    const totalLic = dataLic.net + dataLic.stcNet + diffNet + primeNet;
+    const bestTotal = totalPDV >= totalLic ? 'pdv' : 'lic';
+    const ecart = Math.abs(totalPDV - totalLic);
+    return `
+      <div class="compare-box">
+        <div class="compare-title">Comparatif PDV vs Licenciement économique</div>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>PDV</th>
+              <th>Licenciement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ancienneté retenue</td>
+              <td>${formatMonths(dataPDV.anciennete || 0)} ans</td>
+              <td>${formatMonths(dataLic.anciennete || 0)} ans</td>
+            </tr>
+            <tr>
+              <td>ICL</td>
+              <td>${formatEuro(dataPDV.icl)}</td>
+              <td>${formatEuro(dataLic.icl)}</td>
+            </tr>
+            <tr>
+              <td>Compléments / supra-légale</td>
+              <td>${formatEuro(dataPDV.complement1 + dataPDV.complement2)}</td>
+              <td>${formatEuro(dataLic.supraLegale)}</td>
+            </tr>
+            <tr>
+              <td>Indemnité brute</td>
+              <td class="${bestBrut === 'pdv' ? 'best' : ''}">${formatEuro(dataPDV.indemnite)}</td>
+              <td class="${bestBrut === 'lic' ? 'best' : ''}">${formatEuro(dataLic.indemnite)}</td>
+            </tr>
+            <tr>
+              <td>Net après CSG 9 %</td>
+              <td>${formatEuro(dataPDV.net)}</td>
+              <td>${formatEuro(dataLic.net)}</td>
+            </tr>
+            <tr>
+              <td>STC net</td>
+              <td>${formatEuro(dataPDV.stcNet)}</td>
+              <td>${formatEuro(dataLic.stcNet)}</td>
+            </tr>
+            <tr>
+              <td>IV.2 — Différentiel (net après cot.)</td>
+              <td>—</td>
+              <td>${diffBrut > 0 ? formatEuro(diffNet) : '—'}</td>
+            </tr>
+            <tr>
+              <td>V.2 — Prime rapide (net après cot.)</td>
+              <td>—</td>
+              <td>${primeBrut > 0 ? formatEuro(primeNet) : '—'}</td>
+            </tr>
+            <tr class="total">
+              <td>Total net avant IR</td>
+              <td class="${bestTotal === 'pdv' ? 'best' : ''}">${formatEuro(totalPDV)}</td>
+              <td class="${bestTotal === 'lic' ? 'best' : ''}">${formatEuro(totalLic)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="hint" style="margin-top:10px">
+          <strong>Écart : ${formatEuro(ecart)}</strong> en faveur du ${bestTotal === 'pdv' ? 'PDV' : 'Licenciement économique'}.<br>
+          IV.2 et V.2 sont imposables : cotisations salariales (${tauxCotPct} %) retirées, impôt sur le revenu à prévoir en plus selon TMI.<br>
+          PDV : indemnité supra plus élevée mais plafonnée selon ancienneté.<br>
+          Licenciement : ancienneté plus élevée + différentiel + prime retour rapide.
+        </div>
+      </div>
+    `;
+  };
+
+  const renderStickySummary = (dataPDV, dataLic, differentiel, primeRapide) => {
+    if (!dataPDV || !dataLic) return '';
+    const diffNet = (differentiel && !differentiel.noGain) ? differentiel.total * (1 - dataLic.tauxCotisations) : 0;
+    const primeNet = (primeRapide && !primeRapide.aucune) ? primeRapide.montant * (1 - dataLic.tauxCotisations) : 0;
+    const totalPDV = dataPDV.net + dataPDV.stcNet;
+    const totalLic = dataLic.net + dataLic.stcNet + diffNet + primeNet;
+    const pdvBest = totalPDV >= totalLic;
+    const ecart = Math.abs(totalPDV - totalLic);
+    return `
+      <div class="item ${pdvBest ? 'best' : ''}">
+        <div class="item-label">PDV net</div>
+        <div class="item-value">${formatEuro(totalPDV)}</div>
+      </div>
+      <div class="item ${!pdvBest ? 'best' : ''}">
+        <div class="item-label">Licenciement net</div>
+        <div class="item-value">${formatEuro(totalLic)}</div>
+      </div>
+      <div class="item diff">
+        <div class="item-label">Écart</div>
+        <div class="item-value">${formatEuro(ecart)}</div>
+      </div>
+    `;
+  };
+
+  const render = (extra = {}) => {
+    const { dataPDV, dataLic, differentiel, primeRapide } = extra;
+    const panelCompare = document.getElementById('panel-compare');
+    const panelPdv = document.getElementById('panel-pdv');
+    const panelLic = document.getElementById('panel-licenciement');
+    const sticky = document.getElementById('stickySummary');
+
+    panelCompare.innerHTML = renderComparePanel(dataPDV, dataLic, differentiel, primeRapide);
+    panelPdv.innerHTML = renderDetailPanel(dataPDV);
+    panelLic.innerHTML = renderDetailPanel(dataLic, differentiel, primeRapide);
+
+    const stickyHTML = renderStickySummary(dataPDV, dataLic, differentiel, primeRapide);
+    if (stickyHTML) {
+      sticky.innerHTML = stickyHTML;
+      sticky.style.display = 'flex';
+    } else {
+      sticky.style.display = 'none';
+    }
+
+    // Sous-titre impression
+    const printSub = document.getElementById('printSubtitle');
+    if (printSub && dataPDV) {
+      const today = new Date().toLocaleDateString('fr-FR');
+      printSub.textContent = `Rapport généré le ${today} — Salaire ${formatEuro(dataPDV.salaire || 0)}, ancienneté PDV ${formatMonths(dataPDV.anciennete || 0)} ans.`;
+    }
+
     const results = document.getElementById('results');
     results.classList.add('visible');
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -766,7 +1509,9 @@
       errors.push({ id: 'salaire', msg: 'Salaire invalide' });
     }
     if (!Number.isFinite(anciennete) || anciennete < 0) {
-      errors.push({ id: 'anciennete', msg: 'Ancienneté invalide' });
+      errors.push({ id: 'dateEntree', msg: 'Date d\'entrée invalide' });
+      errors.push({ id: 'dateHomologation', msg: 'Date d\'homologation invalide' });
+      errors.push({ id: 'dateLicenciement', msg: 'Date de licenciement invalide' });
     }
     if (!Number.isFinite(coefficient) || coefficient <= 0) {
       errors.push({ id: 'coefficient', msg: 'Coefficient invalide' });
@@ -774,56 +1519,244 @@
     return errors;
   };
 
-  const ancienneteHintEl = document.getElementById('anciennete-hint');
-  const ancienneteInputEl = document.getElementById('anciennete');
-  const defaultHint = "Les mois s'afficheront automatiquement en tapant";
+  const ancienneteHintPDVEl = document.getElementById('anciennete-hint-pdv');
+  const ancienneteHintLicEl = document.getElementById('anciennete-hint-licenciement');
+  const dateEntreeEl = document.getElementById('dateEntree');
+  const dateHomologationEl = document.getElementById('dateHomologation');
+  const dateLicenciementEl = document.getElementById('dateLicenciement');
 
-  ancienneteInputEl.addEventListener('input', () => {
-    const v = parseFloat(ancienneteInputEl.value.replace(',', '.'));
-    if (!Number.isFinite(v) || v < 0) {
-      ancienneteHintEl.textContent = defaultHint;
-      return;
+  // Calcule l'ancienneté en années décimales entre deux dates
+  const computeAnciennete = (dEntree, dFin) => {
+    if (!dEntree || !dFin || dFin < dEntree) return null;
+    let years = dFin.getFullYear() - dEntree.getFullYear();
+    let months = dFin.getMonth() - dEntree.getMonth();
+    let days = dFin.getDate() - dEntree.getDate();
+    if (days < 0) {
+      months -= 1;
+      // nb de jours du mois précédent
+      const prevMonth = new Date(dFin.getFullYear(), dFin.getMonth(), 0);
+      days += prevMonth.getDate();
     }
-    const years = Math.floor(v);
-    const months = Math.round((v - years) * 12);
-    if (months === 0) {
-      ancienneteHintEl.textContent = `= ${years} an${years > 1 ? 's' : ''}`;
-    } else if (months === 12) {
-      ancienneteHintEl.textContent = `= ${years + 1} ans`;
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+    const decimal = years + months / 12 + days / 365.25;
+    return { years, months, days, decimal };
+  };
+
+  const formatAncienneteText = (a) => {
+    const parts = [];
+    if (a.years > 0) parts.push(`${a.years} an${a.years > 1 ? 's' : ''}`);
+    if (a.months > 0) parts.push(`${a.months} mois`);
+    if (a.days > 0) parts.push(`${a.days} jour${a.days > 1 ? 's' : ''}`);
+    return parts.join(', ') || '0 jour';
+  };
+
+  const updateAncienneteHints = () => {
+    // PDV : à la date d'homologation
+    if (dateEntreeEl.value && dateHomologationEl.value) {
+      const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateHomologationEl.value));
+      ancienneteHintPDVEl.textContent = a
+        ? `Ancienneté PDV : ${formatAncienneteText(a)} (${a.decimal.toFixed(2).replace('.', ',')} années)`
+        : 'La date d\'homologation doit être postérieure à la date d\'entrée';
     } else {
-      ancienneteHintEl.textContent =
-        `= ${years} an${years > 1 ? 's' : ''} et ${months} mois`;
+      ancienneteHintPDVEl.textContent = 'Ancienneté PDV : à la date d\'homologation';
     }
+    // Licenciement : à la date de licenciement
+    if (dateEntreeEl.value && dateLicenciementEl.value) {
+      const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateLicenciementEl.value));
+      ancienneteHintLicEl.textContent = a
+        ? `Ancienneté licenciement : ${formatAncienneteText(a)} (${a.decimal.toFixed(2).replace('.', ',')} années)`
+        : 'La date de licenciement doit être postérieure à la date d\'entrée';
+    } else {
+      ancienneteHintLicEl.textContent = 'Licenciement économique au plus tôt en janvier 2027 (après périodes de volontariat)';
+    }
+  };
+
+  dateEntreeEl.addEventListener('input', updateAncienneteHints);
+  dateHomologationEl.addEventListener('input', updateAncienneteHints);
+  dateLicenciementEl.addEventListener('input', updateAncienneteHints);
+  updateAncienneteHints();
+
+  // --- Navigation par onglets ---
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      if (!target) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.tab-panel').forEach(p => {
+        p.classList.toggle('active', p.id === `panel-${target}`);
+      });
+    });
+  });
+
+  // --- Bouton Imprimer / PDF ---
+  const btnPrint = document.getElementById('btnPrint');
+  if (btnPrint) {
+    btnPrint.addEventListener('click', () => {
+      const results = document.getElementById('results');
+      if (!results || !results.classList.contains('visible')) {
+        alert('Calcule d\'abord une indemnité avant d\'imprimer le rapport.');
+        return;
+      }
+      // Laisse le rendu se stabiliser avant le dialog natif
+      window.scrollTo({ top: 0 });
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          try { window.print(); } catch (e) { console.error('Impression impossible', e); }
+        }, 50);
+      });
+    });
+  }
+
+  // --- localStorage : persistance du formulaire ---
+  const STORAGE_KEY = 'pse-calculator-form-v1';
+  const persistedFields = [
+    'salaire', 'dateEntree', 'dateHomologation', 'dateLicenciement',
+    'joursCP', 'joursRTT', 'joursCET', 'joursRecup', 'nouveauSalaire', 'delaiReprise'
+  ];
+
+  const saveForm = () => {
+    try {
+      const state = {};
+      persistedFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) state[id] = el.value;
+      });
+      const coefEl = document.querySelector('input[name="coefficient"]:checked');
+      if (coefEl) state.coefficient = coefEl.value;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (_) { /* quota ou navigation privée : ignorer */ }
+  };
+
+  const loadForm = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      persistedFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && state[id] !== undefined) el.value = state[id];
+      });
+      if (state.coefficient) {
+        const coefEl = document.querySelector(`input[name="coefficient"][value="${state.coefficient}"]`);
+        if (coefEl) coefEl.checked = true;
+      }
+    } catch (_) { /* JSON invalide : ignorer */ }
+  };
+
+  loadForm();
+  updateAncienneteHints();
+
+  // --- Validation temps réel ---
+  const validateField = (el) => {
+    if (!el) return true;
+    const v = (el.value || '').trim();
+    let ok = true;
+    if (el.required && !v) ok = false;
+    if (el.type === 'number' && v) {
+      const n = parseFloat(v.replace(',', '.'));
+      if (!Number.isFinite(n)) ok = false;
+      else if (el.min !== '' && n < parseFloat(el.min)) ok = false;
+      else if (el.max !== '' && el.max && n > parseFloat(el.max)) ok = false;
+    }
+    if (el.id === 'salaire' && v) {
+      const n = parseFloat(v.replace(',', '.'));
+      if (!(n > 0)) ok = false;
+    }
+    el.classList.toggle('error', !ok);
+    return ok;
+  };
+
+  const validateDateOrder = () => {
+    const dEntree = dateEntreeEl.value ? new Date(dateEntreeEl.value) : null;
+    const dHomo = dateHomologationEl.value ? new Date(dateHomologationEl.value) : null;
+    const dLic = dateLicenciementEl.value ? new Date(dateLicenciementEl.value) : null;
+    let ok = true;
+    if (dEntree && dHomo && dHomo < dEntree) {
+      dateHomologationEl.classList.add('error'); ok = false;
+    }
+    if (dEntree && dLic && dLic < dEntree) {
+      dateLicenciementEl.classList.add('error'); ok = false;
+    }
+    return ok;
+  };
+
+  const allInputs = document.querySelectorAll('#form input');
+  allInputs.forEach(el => {
+    el.addEventListener('input', () => {
+      validateField(el);
+      validateDateOrder();
+      saveForm();
+    });
+    el.addEventListener('blur', () => validateField(el));
   });
 
   document.getElementById('form').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const salaireEl = document.getElementById('salaire');
-    const ancienneteEl = document.getElementById('anciennete');
+    const nouveauSalaireEl = document.getElementById('nouveauSalaire');
+    const delaiRepriseEl = document.getElementById('delaiReprise');
     const coefficientEl = document.querySelector('input[name="coefficient"]:checked');
     const joursCPEl = document.getElementById('joursCP');
     const joursRTTEl = document.getElementById('joursRTT');
     const joursCETEl = document.getElementById('joursCET');
+    const joursRecupEl = document.getElementById('joursRecup');
 
-    [salaireEl, ancienneteEl, joursCPEl, joursRTTEl, joursCETEl].forEach(el => el.classList.remove('error'));
+    [salaireEl, dateEntreeEl, dateHomologationEl, dateLicenciementEl, joursCPEl, joursRTTEl, joursCETEl, joursRecupEl]
+      .forEach(el => el.classList.remove('error'));
 
-    const salaire = parseFloat(salaireEl.value.replace(',', '.'));
-    const anciennete = parseFloat(ancienneteEl.value.replace(',', '.'));
+    const salaire = parseFloat((salaireEl.value || '').replace(',', '.'));
+    const nouveauSalaireRaw = (nouveauSalaireEl.value || '').replace(',', '.');
+    const nouveauSalaire = nouveauSalaireRaw ? parseFloat(nouveauSalaireRaw) : NaN;
+    const delaiRepriseRaw = (delaiRepriseEl.value || '').replace(',', '.');
+    const delaiReprise = delaiRepriseRaw ? parseFloat(delaiRepriseRaw) : NaN;
     const coefficient = coefficientEl ? parseFloat(coefficientEl.value) : NaN;
     const joursCP = parseFloat((joursCPEl.value || '0').replace(',', '.')) || 0;
     const joursRTT = parseFloat((joursRTTEl.value || '0').replace(',', '.')) || 0;
     const joursCET = parseFloat((joursCETEl.value || '0').replace(',', '.')) || 0;
+    const joursRecup = parseFloat((joursRecupEl.value || '0').replace(',', '.')) || 0;
 
-    const errors = validate(salaire, anciennete, coefficient);
+    // Anciennetés distinctes selon la date de référence
+    let anciennetePDV = NaN;
+    let ancienneteLic = NaN;
+    if (dateEntreeEl.value && dateHomologationEl.value) {
+      const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateHomologationEl.value));
+      if (a) anciennetePDV = a.decimal;
+    }
+    if (dateEntreeEl.value && dateLicenciementEl.value) {
+      const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateLicenciementEl.value));
+      if (a) ancienneteLic = a.decimal;
+    }
+
+    // Validation : utilise la plus complète des deux ancienneté pour l'erreur
+    const ancienneteRef = Number.isFinite(anciennetePDV) ? anciennetePDV : ancienneteLic;
+    const errors = validate(salaire, ancienneteRef, coefficient);
     if (errors.length > 0) {
-      errors.forEach(err => document.getElementById(err.id).classList.add('error'));
+      errors.forEach(err => {
+        const el = document.getElementById(err.id);
+        if (el) el.classList.add('error');
+      });
       document.getElementById('results').classList.remove('visible');
       return;
     }
 
-    const data = calculate(salaire, anciennete, coefficient, joursCP, joursRTT, joursCET);
-    render(data);
+    // Calcul systématique des deux modes
+    const dataPDV = Number.isFinite(anciennetePDV)
+      ? calculate('pdv', salaire, anciennetePDV, coefficient, joursCP, joursRTT, joursCET, joursRecup)
+      : null;
+    const dataLic = Number.isFinite(ancienneteLic)
+      ? calculate('licenciement', salaire, ancienneteLic, coefficient, joursCP, joursRTT, joursCET, joursRecup)
+      : null;
+
+    // IV.2 Différentiel de salaire + V.2 Prime retour rapide (licenciement uniquement)
+    const differentiel = computeDifferentielSalaire(salaire, nouveauSalaire);
+    const primeRapide = computePrimeRetourRapide(salaire, delaiReprise);
+
+    saveForm();
+    render({ dataPDV, dataLic, differentiel, primeRapide });
   });
 </script>
 </body>
