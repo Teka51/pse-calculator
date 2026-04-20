@@ -343,6 +343,73 @@
     color: var(--text);
   }
 
+  .subsection {
+    margin: 24px 0 12px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .subsection-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .subsection-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .stc-box {
+    margin-top: 18px;
+    padding: 18px 20px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+  }
+
+  .stc-box .stc-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .total-box {
+    margin-top: 18px;
+    padding: 22px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #fff;
+    text-align: center;
+  }
+
+  .total-box .total-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    margin-bottom: 6px;
+  }
+
+  .total-box .total-amount {
+    font-size: 2.1rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #4ade80;
+    line-height: 1.1;
+  }
+
+  .total-box .total-sub {
+    font-size: 0.82rem;
+    opacity: 0.7;
+    margin-top: 6px;
+  }
+
   footer {
     text-align: center;
     font-size: 0.82rem;
@@ -402,6 +469,27 @@
           <div class="hint">Non cadre : 1/4 de mois — Cadre : 1/3 de mois par année d'ancienneté</div>
         </div>
 
+        <div class="subsection">
+          <div class="subsection-title">Solde de tout compte</div>
+          <div class="subsection-subtitle">
+            Jours non pris à la date de sortie — convention Syntec / 37h
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="joursCP">Jours de congés payés restants</label>
+          <input type="number" id="joursCP" step="0.5" min="0"
+                 value="0" inputmode="decimal">
+          <div class="hint">En jours ouvrés (base Syntec : 25 j / an)</div>
+        </div>
+
+        <div class="field">
+          <label for="joursRTT">Jours de RTT restants</label>
+          <input type="number" id="joursRTT" step="0.5" min="0"
+                 value="0" inputmode="decimal">
+          <div class="hint">Base 37h : environ 11-12 j / an</div>
+        </div>
+
         <button type="submit">Calculer mon indemnité</button>
       </form>
     </div>
@@ -414,8 +502,10 @@
     </div>
 
     <footer>
-      CSG appliquée à 9 % sur l'ensemble de l'indemnité. D'autres prélèvements
-      (CRDS, fiscalité) peuvent s'appliquer au-delà de certains seuils.
+      Indemnité PSE : CSG 9 %. Solde de tout compte (CP / RTT) : cotisations
+      salariales 22 % (non-cadre) / 24 % (cadre) — convention Syntec, 37 h.
+      Valeur d'un jour = salaire mensuel ÷ 21,67. D'autres prélèvements
+      (CRDS, fiscalité IR) peuvent s'appliquer. Estimations indicatives.
     </footer>
   </div>
 
@@ -447,8 +537,14 @@
 
   const PLANCHER = 35000;
   const CSG_RATE = 0.09;
+  const JOURS_OUVRES_MOIS = 21.67;
+  // Charges salariales moyennes (Syntec) - calibrées sur bulletins réels
+  // Cadre 2.1 Syntec : taux effectif mesuré ≈ 23,9 % (Sécu + retraite + APEC + CSG/CRDS)
+  const COTISATIONS_CADRE = 0.24;
+  const COTISATIONS_NONCADRE = 0.22;
 
-  const calculate = (salaire, anciennete, coefficient) => {
+  const calculate = (salaire, anciennete, coefficient, joursCP, joursRTT) => {
+    // --- Indemnité PSE ---
     const icl = anciennete * (salaire * coefficient);
     const complement1 = Math.max(4 * icl, 3 * salaire);
     const complement2 = Math.max(10000, 6 * salaire);
@@ -471,6 +567,19 @@
     const csg = indemnite * CSG_RATE;
     const net = indemnite - csg;
 
+    // --- Solde de tout compte (CP + RTT) ---
+    const valeurJour = salaire / JOURS_OUVRES_MOIS;
+    const iccp = joursCP * valeurJour;
+    const irtt = joursRTT * valeurJour;
+    const stcBrut = iccp + irtt;
+    const tauxCotisations = coefficient >= 0.33 ? COTISATIONS_CADRE : COTISATIONS_NONCADRE;
+    const stcCotisations = stcBrut * tauxCotisations;
+    const stcNet = stcBrut - stcCotisations;
+
+    // --- Totaux ---
+    const totalBrut = indemnite + stcBrut;
+    const totalNet = net + stcNet;
+
     return {
       icl,
       complement1,
@@ -481,7 +590,20 @@
       indemnite,
       csg,
       net,
-      cas
+      cas,
+      // STC
+      valeurJour,
+      joursCP,
+      joursRTT,
+      iccp,
+      irtt,
+      stcBrut,
+      tauxCotisations,
+      stcCotisations,
+      stcNet,
+      // totaux
+      totalBrut,
+      totalNet
     };
   };
 
@@ -574,6 +696,50 @@
       final.innerHTML = buildFinalBox('green', 'Montant compris entre plancher et plafond');
     }
 
+    // Bloc Solde de tout compte (si CP ou RTT > 0)
+    if (data.stcBrut > 0) {
+      const tauxPct = Math.round(data.tauxCotisations * 100);
+      final.innerHTML += `
+        <div class="stc-box">
+          <div class="stc-title">Solde de tout compte</div>
+          <div class="line">
+            <span class="label">Valeur d'un jour (salaire / 21,67)</span>
+            <span class="value">${formatEuro(data.valeurJour)}</span>
+          </div>
+          ${data.joursCP > 0 ? `
+          <div class="line">
+            <span class="label">Indemnité CP (${formatMonths(data.joursCP)} j)</span>
+            <span class="value">${formatEuro(data.iccp)}</span>
+          </div>` : ''}
+          ${data.joursRTT > 0 ? `
+          <div class="line">
+            <span class="label">Indemnité RTT (${formatMonths(data.joursRTT)} j)</span>
+            <span class="value">${formatEuro(data.irtt)}</span>
+          </div>` : ''}
+          <div class="line total">
+            <span class="label">STC brut</span>
+            <span class="value">${formatEuro(data.stcBrut)}</span>
+          </div>
+          <div class="line">
+            <span class="label">Cotisations salariales (~${tauxPct} %)</span>
+            <span class="value">− ${formatEuro(data.stcCotisations)}</span>
+          </div>
+          <div class="line total">
+            <span class="label">STC net</span>
+            <span class="value">${formatEuro(data.stcNet)}</span>
+          </div>
+        </div>
+
+        <div class="total-box">
+          <div class="total-label">Total net versé (PSE + STC)</div>
+          <div class="total-amount">${formatEuro(data.totalNet)}</div>
+          <div class="total-sub">
+            Indemnité PSE nette ${formatEuro(data.net)} + STC nette ${formatEuro(data.stcNet)}
+          </div>
+        </div>
+      `;
+    }
+
     const results = document.getElementById('results');
     results.classList.add('visible');
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -621,12 +787,16 @@
     const salaireEl = document.getElementById('salaire');
     const ancienneteEl = document.getElementById('anciennete');
     const coefficientEl = document.querySelector('input[name="coefficient"]:checked');
+    const joursCPEl = document.getElementById('joursCP');
+    const joursRTTEl = document.getElementById('joursRTT');
 
-    [salaireEl, ancienneteEl].forEach(el => el.classList.remove('error'));
+    [salaireEl, ancienneteEl, joursCPEl, joursRTTEl].forEach(el => el.classList.remove('error'));
 
     const salaire = parseFloat(salaireEl.value.replace(',', '.'));
     const anciennete = parseFloat(ancienneteEl.value.replace(',', '.'));
     const coefficient = coefficientEl ? parseFloat(coefficientEl.value) : NaN;
+    const joursCP = parseFloat((joursCPEl.value || '0').replace(',', '.')) || 0;
+    const joursRTT = parseFloat((joursRTTEl.value || '0').replace(',', '.')) || 0;
 
     const errors = validate(salaire, anciennete, coefficient);
     if (errors.length > 0) {
@@ -635,7 +805,7 @@
       return;
     }
 
-    const data = calculate(salaire, anciennete, coefficient);
+    const data = calculate(salaire, anciennete, coefficient, joursCP, joursRTT);
     render(data);
   });
 </script>

@@ -1,10 +1,10 @@
 # Claude Code
 .claude/
 
-# Texte extrait du PDF (généré localement)
-accord-pse.txt
+# Texte extrait de PDF (généré localement, peut contenir des données perso)
+*.txt
 
-# PDFs sources
+# PDFs sources (bulletins, accords, données sensibles)
 *.pdf
 
 # OS
