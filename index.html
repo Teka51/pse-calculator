@@ -749,10 +749,18 @@
         </div>
 
         <div class="field">
-          <label for="dateHomologation">Date d'homologation du PSE (réf. PDV)<span class="tip" tabindex="0" data-tip="Date à laquelle le PSE devient officiel. L'ancienneté PDV est calculée jusqu'à cette date."></span></label>
+          <label for="dateHomologation">Date d'homologation du PSE (tranche de plafond PDV)<span class="tip" tabindex="0" data-tip="Date à laquelle le PSE devient officiel. L'ancienneté à cette date fige la tranche de plafond PDV (15 / 21 / 24 / 26 mois) — même si tu pars plus tard."></span></label>
           <input type="date" id="dateHomologation" value="2026-04-20" required>
+          <div class="hint" id="anciennete-hint-homologation">
+            Ancienneté à l'homologation : détermine la tranche de plafond PDV
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="dateDepartPDV">Date de départ PDV (calcul ICL)<span class="tip" tabindex="0" data-tip="Date effective de sortie dans le cadre du PDV (acceptation du volontariat). L'ICL et les compléments PDV sont calculés à partir de l'ancienneté à cette date."></span></label>
+          <input type="date" id="dateDepartPDV" value="2026-07-31" required>
           <div class="hint" id="anciennete-hint-pdv">
-            Ancienneté PDV : à la date d'homologation
+            Ancienneté au départ PDV : sert au calcul ICL et compléments
           </div>
         </div>
 
@@ -977,7 +985,7 @@
     return { delaiMois, tranche, moisSalaire, plafond, calcule, montant, aucune: false };
   };
 
-  const calculate = (mode, salaire, anciennete, coefficient, joursCP, joursRTT, joursCET, joursRecup) => {
+  const calculate = (mode, salaire, anciennete, coefficient, joursCP, joursRTT, joursCET, joursRecup, ancienneteHomologation) => {
     // --- Indemnité ---
     const iclResult = computeICL(anciennete, salaire, coefficient);
     const icl = iclResult.montant;
@@ -998,12 +1006,14 @@
       totalCalcule = icl + supraLegale;
       plancher = PLANCHER_LICENCIEMENT;
     } else {
-      // PDV : ICL + Compl1 + Compl2, plancher 35 000, plafond selon ancienneté
+      // PDV : ICL + Compl1 + Compl2, plancher 35 000, plafond selon ancienneté À L'HOMOLOGATION
       complement1 = Math.max(4 * icl, 3 * salaire);
       complement2 = Math.max(10000, 6 * salaire);
       totalCalcule = icl + complement1 + complement2;
       plancher = PLANCHER_PDV;
-      plafondMultiplier = getPlafondMultiplier(anciennete);
+      // Tranche de plafond figée par l'ancienneté à la date d'homologation du PSE
+      const ancienneteTranche = Number.isFinite(ancienneteHomologation) ? ancienneteHomologation : anciennete;
+      plafondMultiplier = getPlafondMultiplier(ancienneteTranche);
       plafond = plafondMultiplier * salaire;
     }
 
@@ -1039,6 +1049,7 @@
       mode,
       salaire,
       anciennete,
+      ancienneteHomologation: Number.isFinite(ancienneteHomologation) ? ancienneteHomologation : null,
       icl,
       iclDetail,
       complement1,
@@ -1106,7 +1117,7 @@
           <span class="value">${formatEuro(data.plancher)}</span>
         </div>
         <div class="line">
-          <span class="label">Plafond applicable (${data.plafondMultiplier} mois de salaire)</span>
+          <span class="label">Plafond applicable (${data.plafondMultiplier} mois de salaire${data.ancienneteHomologation !== null ? ` — tranche figée à ${formatMonths(data.ancienneteHomologation)} ans à l'homologation` : ''})</span>
           <span class="value">${formatEuro(data.plafond)}</span>
         </div>`;
 
@@ -1392,10 +1403,16 @@
           </thead>
           <tbody>
             <tr>
-              <td>Ancienneté retenue</td>
+              <td>Ancienneté (ICL)</td>
               <td>${formatMonths(dataPDV.anciennete || 0)} ans</td>
               <td>${formatMonths(dataLic.anciennete || 0)} ans</td>
             </tr>
+            ${dataPDV.ancienneteHomologation !== null ? `
+            <tr>
+              <td>Ancienneté homologation (tranche)</td>
+              <td>${formatMonths(dataPDV.ancienneteHomologation)} ans → ${dataPDV.plafondMultiplier} mois</td>
+              <td>—</td>
+            </tr>` : ''}
             <tr>
               <td>ICL</td>
               <td>${formatEuro(dataPDV.icl)}</td>
@@ -1519,10 +1536,12 @@
     return errors;
   };
 
+  const ancienneteHintHomoEl = document.getElementById('anciennete-hint-homologation');
   const ancienneteHintPDVEl = document.getElementById('anciennete-hint-pdv');
   const ancienneteHintLicEl = document.getElementById('anciennete-hint-licenciement');
   const dateEntreeEl = document.getElementById('dateEntree');
   const dateHomologationEl = document.getElementById('dateHomologation');
+  const dateDepartPDVEl = document.getElementById('dateDepartPDV');
   const dateLicenciementEl = document.getElementById('dateLicenciement');
 
   // Calcule l'ancienneté en années décimales entre deux dates
@@ -1554,14 +1573,26 @@
   };
 
   const updateAncienneteHints = () => {
-    // PDV : à la date d'homologation
+    // Homologation : fige la tranche du plafond PDV
     if (dateEntreeEl.value && dateHomologationEl.value) {
       const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateHomologationEl.value));
-      ancienneteHintPDVEl.textContent = a
-        ? `Ancienneté PDV : ${formatAncienneteText(a)} (${a.decimal.toFixed(2).replace('.', ',')} années)`
-        : 'La date d\'homologation doit être postérieure à la date d\'entrée';
+      if (a) {
+        const tranche = getPlafondMultiplier(a.decimal);
+        ancienneteHintHomoEl.textContent = `Ancienneté à l'homologation : ${formatAncienneteText(a)} (${a.decimal.toFixed(2).replace('.', ',')} années) → tranche ${tranche} mois`;
+      } else {
+        ancienneteHintHomoEl.textContent = 'La date d\'homologation doit être postérieure à la date d\'entrée';
+      }
     } else {
-      ancienneteHintPDVEl.textContent = 'Ancienneté PDV : à la date d\'homologation';
+      ancienneteHintHomoEl.textContent = 'Ancienneté à l\'homologation : détermine la tranche de plafond PDV';
+    }
+    // Départ PDV : sert au calcul de l'ICL
+    if (dateEntreeEl.value && dateDepartPDVEl.value) {
+      const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateDepartPDVEl.value));
+      ancienneteHintPDVEl.textContent = a
+        ? `Ancienneté au départ PDV : ${formatAncienneteText(a)} (${a.decimal.toFixed(2).replace('.', ',')} années) → base ICL`
+        : 'La date de départ PDV doit être postérieure à la date d\'entrée';
+    } else {
+      ancienneteHintPDVEl.textContent = 'Ancienneté au départ PDV : sert au calcul ICL et compléments';
     }
     // Licenciement : à la date de licenciement
     if (dateEntreeEl.value && dateLicenciementEl.value) {
@@ -1576,6 +1607,7 @@
 
   dateEntreeEl.addEventListener('input', updateAncienneteHints);
   dateHomologationEl.addEventListener('input', updateAncienneteHints);
+  dateDepartPDVEl.addEventListener('input', updateAncienneteHints);
   dateLicenciementEl.addEventListener('input', updateAncienneteHints);
   updateAncienneteHints();
 
@@ -1613,7 +1645,7 @@
   // --- localStorage : persistance du formulaire ---
   const STORAGE_KEY = 'pse-calculator-form-v1';
   const persistedFields = [
-    'salaire', 'dateEntree', 'dateHomologation', 'dateLicenciement',
+    'salaire', 'dateEntree', 'dateHomologation', 'dateDepartPDV', 'dateLicenciement',
     'joursCP', 'joursRTT', 'joursCET', 'joursRecup', 'nouveauSalaire', 'delaiReprise'
   ];
 
@@ -1672,10 +1704,14 @@
   const validateDateOrder = () => {
     const dEntree = dateEntreeEl.value ? new Date(dateEntreeEl.value) : null;
     const dHomo = dateHomologationEl.value ? new Date(dateHomologationEl.value) : null;
+    const dDepart = dateDepartPDVEl.value ? new Date(dateDepartPDVEl.value) : null;
     const dLic = dateLicenciementEl.value ? new Date(dateLicenciementEl.value) : null;
     let ok = true;
     if (dEntree && dHomo && dHomo < dEntree) {
       dateHomologationEl.classList.add('error'); ok = false;
+    }
+    if (dEntree && dDepart && dDepart < dEntree) {
+      dateDepartPDVEl.classList.add('error'); ok = false;
     }
     if (dEntree && dLic && dLic < dEntree) {
       dateLicenciementEl.classList.add('error'); ok = false;
@@ -1705,7 +1741,7 @@
     const joursCETEl = document.getElementById('joursCET');
     const joursRecupEl = document.getElementById('joursRecup');
 
-    [salaireEl, dateEntreeEl, dateHomologationEl, dateLicenciementEl, joursCPEl, joursRTTEl, joursCETEl, joursRecupEl]
+    [salaireEl, dateEntreeEl, dateHomologationEl, dateDepartPDVEl, dateLicenciementEl, joursCPEl, joursRTTEl, joursCETEl, joursRecupEl]
       .forEach(el => el.classList.remove('error'));
 
     const salaire = parseFloat((salaireEl.value || '').replace(',', '.'));
@@ -1719,20 +1755,28 @@
     const joursCET = parseFloat((joursCETEl.value || '0').replace(',', '.')) || 0;
     const joursRecup = parseFloat((joursRecupEl.value || '0').replace(',', '.')) || 0;
 
-    // Anciennetés distinctes selon la date de référence
-    let anciennetePDV = NaN;
+    // Anciennetés distinctes :
+    // - ancienneteHomo : à la date d'homologation → fige la tranche de plafond PDV
+    // - anciennetePDVDepart : à la date de départ PDV → base ICL + compléments PDV
+    // - ancienneteLic : à la date de licenciement → base ICL licenciement économique
+    let ancienneteHomo = NaN;
+    let anciennetePDVDepart = NaN;
     let ancienneteLic = NaN;
     if (dateEntreeEl.value && dateHomologationEl.value) {
       const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateHomologationEl.value));
-      if (a) anciennetePDV = a.decimal;
+      if (a) ancienneteHomo = a.decimal;
+    }
+    if (dateEntreeEl.value && dateDepartPDVEl.value) {
+      const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateDepartPDVEl.value));
+      if (a) anciennetePDVDepart = a.decimal;
     }
     if (dateEntreeEl.value && dateLicenciementEl.value) {
       const a = computeAnciennete(new Date(dateEntreeEl.value), new Date(dateLicenciementEl.value));
       if (a) ancienneteLic = a.decimal;
     }
 
-    // Validation : utilise la plus complète des deux ancienneté pour l'erreur
-    const ancienneteRef = Number.isFinite(anciennetePDV) ? anciennetePDV : ancienneteLic;
+    // Validation : utilise la plus complète des anciennetés pour l'erreur
+    const ancienneteRef = Number.isFinite(anciennetePDVDepart) ? anciennetePDVDepart : (Number.isFinite(ancienneteLic) ? ancienneteLic : ancienneteHomo);
     const errors = validate(salaire, ancienneteRef, coefficient);
     if (errors.length > 0) {
       errors.forEach(err => {
@@ -1744,8 +1788,9 @@
     }
 
     // Calcul systématique des deux modes
-    const dataPDV = Number.isFinite(anciennetePDV)
-      ? calculate('pdv', salaire, anciennetePDV, coefficient, joursCP, joursRTT, joursCET, joursRecup)
+    // PDV : ICL calculée à la date de départ, plafond figé à la date d'homologation
+    const dataPDV = Number.isFinite(anciennetePDVDepart)
+      ? calculate('pdv', salaire, anciennetePDVDepart, coefficient, joursCP, joursRTT, joursCET, joursRecup, ancienneteHomo)
       : null;
     const dataLic = Number.isFinite(ancienneteLic)
       ? calculate('licenciement', salaire, ancienneteLic, coefficient, joursCP, joursRTT, joursCET, joursRecup)
